@@ -9,6 +9,7 @@
             --primary: #2563eb;
             --success: #16a34a;
             --pending: #d1d5db;
+            --danger: #ef4444;
             --bg: #f8fafc;
             --text: #1e293b;
         }
@@ -25,7 +26,7 @@
 
         .container {
             background: white;
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             padding: 30px;
             border-radius: 12px;
@@ -78,7 +79,6 @@
             color: #64748b;
             margin-right: 15px;
             flex-shrink: 0;
-            transition: all 0.3s ease;
         }
 
         .step-content {
@@ -87,10 +87,12 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
+            background: white;
         }
 
         .step-text {
-            padding-right: 15px;
+            padding-right: 10px;
+            flex-grow: 1;
         }
 
         .step-title {
@@ -105,13 +107,32 @@
             margin-top: 4px;
         }
 
-        /* Estilização do Checkbox */
+        .step-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .icon-btn:hover {
+            opacity: 1;
+        }
+
         .step-checkbox {
-            width: 22px;
-            height: 22px;
+            width: 20px;
+            height: 20px;
             cursor: pointer;
             accent-color: var(--success);
-            margin-top: 2px;
         }
 
         /* Status Concluído */
@@ -125,7 +146,7 @@
             text-decoration: line-through;
         }
 
-        /* Status Ativo (O próximo passo a ser feito) */
+        /* Status Ativo */
         .step.active .step-marker {
             background-color: var(--primary);
             border-color: var(--primary);
@@ -142,41 +163,58 @@
             background-color: white;
         }
 
-        .alert-box {
+        /* Painel de Adição */
+        .admin-panel {
             margin-top: 40px;
+            padding: 20px;
+            background-color: #f1f5f9;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .admin-panel h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: #334155;
+        }
+
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            padding: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .input-id { width: 60px; }
+        .input-title { flex-grow: 1; }
+        .input-desc { width: 100%; margin-bottom: 10px; }
+
+        .btn-add {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-add:hover { background-color: #1d4ed8; }
+
+        .alert-box {
+            margin-top: 20px;
             padding: 15px;
             background-color: #fffbeb;
             border-left: 4px solid #f59e0b;
             border-radius: 4px;
             font-size: 0.85rem;
             color: #92400e;
-        }
-
-        .alert-box h3 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-        }
-        
-        .alert-box p {
-            margin: 5px 0;
-        }
-        
-        /* Botão para limpar progresso (opcional) */
-        .reset-btn {
-            display: block;
-            width: 100%;
-            margin-top: 20px;
-            padding: 10px;
-            background: none;
-            border: 1px solid #cbd5e1;
-            color: #64748b;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: background 0.3s;
-        }
-        .reset-btn:hover {
-            background: #f1f5f9;
         }
     </style>
 </head>
@@ -188,17 +226,24 @@
         <div class="timeline" id="timeline-container">
             </div>
 
-        <div class="alert-box">
-            <h3>⚠️ Observações Importantes</h3>
-            <p><strong>IQ com a CAIXA:</strong> Para dar entrada no cartório, é necessário aguardar os vendedores receberem a Carta de Quitação por e-mail (prazo de até 30 dias, média de 2 semanas).</p>
-            <p><strong>Exceções:</strong> Pastas por procuração possuem fluxos/formulários específicos.</p>
+        <div class="admin-panel">
+            <h3>➕ Adicionar Nova Etapa</h3>
+            <div class="form-group">
+                <input type="text" id="new-id" class="input-id" placeholder="Nº (Ex: 8)">
+                <input type="text" id="new-title" class="input-title" placeholder="Nome da etapa">
+            </div>
+            <input type="text" id="new-desc" class="input-desc" placeholder="Descrição ou observação (opcional)">
+            <button class="btn-add" onclick="addNewStep()">Adicionar</button>
+            <button class="btn-add" style="background-color: #64748b; margin-left: 10px;" onclick="resetProgress()">Restaurar Original</button>
         </div>
 
-        <button class="reset-btn" onclick="resetProgress()">Reiniciar Progresso</button>
+        <div class="alert-box">
+            <h3>⚠️ Observações Importantes</h3>
+            <p><strong>IQ com a CAIXA:</strong> Para dar entrada no cartório, é aguardar os vendedores receberem a Carta de Quitação (até 30 dias).</p>
+        </div>
     </div>
 
     <script>
-        // Array original de passos (sem o FGTS)
         const defaultSteps = [
             { id: "1", title: "Simulação", status: "completed" },
             { id: "2", title: "Aprovação de crédito", status: "completed" },
@@ -209,17 +254,16 @@
             { id: "7", title: "Minuta, confirmação de dados e valores", status: "pending" },
             { id: "9", title: "Emissão do contrato", status: "pending", desc: "Débito da tarifa de vistoria: R$ 1.950,00" },
             { id: "10", title: "Assinatura de contrato", status: "pending", desc: "Digital e/ou física" },
-            { id: "11", title: "Emissão e pagamento da guia de ITBI", status: "pending", desc: "Imposto para prefeitura (Emitido após assinatura)" },
+            { id: "11", title: "Emissão e pagamento da guia de ITBI", status: "pending" },
             { id: "19", title: "Ingresso no cartório", status: "pending", desc: "Via RI DIGITAL (Itaú)" },
-            { id: "20", title: "Pagamento da prenotação do cartório", status: "pending", desc: "Aguardando boleto" },
-            { id: "21", title: "Pagamento do registro no Cartório", status: "pending", desc: "Via boleto, em média 15 dias após entrada" },
+            { id: "20", title: "Pagamento da prenotação do cartório", status: "pending" },
+            { id: "21", title: "Pagamento do registro no Cartório", status: "pending" },
             { id: "22", title: "Documento: Contrato Registrado", status: "pending" },
             { id: "23", title: "Pagamento ao vendedor", status: "pending", desc: "Recursos de financiamento" }
         ];
 
         let steps = [];
 
-        // Carrega o progresso salvo no navegador ou usa o original
         function loadSteps() {
             const saved = localStorage.getItem('financiamentoSteps');
             if (saved) {
@@ -229,48 +273,98 @@
             }
         }
 
-        // Salva o progresso no navegador
         function saveSteps() {
             localStorage.setItem('financiamentoSteps', JSON.stringify(steps));
         }
 
-        // Atualiza a lógica visual dos passos (quem é active, pending ou completed)
         function updateStepsLogic() {
             let foundActive = false;
-            
             for (let i = 0; i < steps.length; i++) {
-                if (steps[i].status === 'completed') {
-                    continue; // Pula os concluídos
-                }
-                
-                // O primeiro que não estiver concluído se torna o "ativo" (destaque)
+                if (steps[i].status === 'completed') continue;
                 if (!foundActive) {
                     steps[i].status = 'active';
                     foundActive = true;
                 } else {
-                    // Os demais ficam como pendentes
                     steps[i].status = 'pending';
                 }
             }
         }
 
-        // Função disparada ao clicar no checkbox
         function toggleStep(index, isChecked) {
-            if (isChecked) {
-                steps[index].status = 'completed';
-            } else {
-                steps[index].status = 'pending';
-            }
-            
+            steps[index].status = isChecked ? 'completed' : 'pending';
             updateStepsLogic();
             saveSteps();
             renderSteps();
         }
 
-        // Função para renderizar o HTML na tela
+        function deleteStep(index) {
+            if(confirm(`Tem certeza que deseja excluir a etapa "${steps[index].title}"?`)) {
+                steps.splice(index, 1);
+                updateStepsLogic();
+                saveSteps();
+                renderSteps();
+            }
+        }
+
+        function editStep(index) {
+            const step = steps[index];
+            const newTitle = prompt("Edite o nome da etapa:", step.title);
+            if (newTitle === null) return; // Cancelou
+            
+            const newDesc = prompt("Edite a descrição (deixe em branco para remover):", step.desc || "");
+            if (newDesc === null) return; // Cancelou
+
+            step.title = newTitle.trim() || step.title;
+            step.desc = newDesc.trim();
+            if (step.desc === "") delete step.desc;
+
+            saveSteps();
+            renderSteps();
+        }
+
+        function addNewStep() {
+            const idInput = document.getElementById('new-id');
+            const titleInput = document.getElementById('new-title');
+            const descInput = document.getElementById('new-desc');
+
+            if(!idInput.value || !titleInput.value) {
+                alert("Por favor, preencha pelo menos o Número e o Nome da etapa.");
+                return;
+            }
+
+            const newStep = {
+                id: idInput.value,
+                title: titleInput.value,
+                desc: descInput.value || undefined,
+                status: "pending" // Novas etapas entram como pendentes
+            };
+
+            steps.push(newStep);
+            
+            // Opcional: Ordenar pelo ID numérico
+            steps.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+            idInput.value = '';
+            titleInput.value = '';
+            descInput.value = '';
+
+            updateStepsLogic();
+            saveSteps();
+            renderSteps();
+        }
+
+        function resetProgress() {
+            if(confirm("Isso vai apagar todas as suas edições e voltar ao formato original. Continuar?")) {
+                localStorage.removeItem('financiamentoSteps');
+                loadSteps();
+                updateStepsLogic();
+                renderSteps();
+            }
+        }
+
         function renderSteps() {
             const container = document.getElementById('timeline-container');
-            container.innerHTML = ''; // Limpa a tela antes de desenhar
+            container.innerHTML = ''; 
 
             steps.forEach((step, index) => {
                 const stepDiv = document.createElement('div');
@@ -289,8 +383,7 @@
                 const title = document.createElement('label');
                 title.className = 'step-title';
                 title.innerText = `${step.id}. ${step.title}`;
-                // Linkando o texto ao checkbox
-                title.htmlFor = `chk-${step.id}`; 
+                title.htmlFor = `chk-${index}`; 
 
                 textDiv.appendChild(title);
 
@@ -301,18 +394,35 @@
                     textDiv.appendChild(desc);
                 }
 
-                // Criação do Checkbox
+                // Ações (Editar, Excluir, Checkbox)
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'step-actions';
+
+                const btnEdit = document.createElement('button');
+                btnEdit.className = 'icon-btn';
+                btnEdit.innerHTML = '✏️';
+                btnEdit.title = "Editar etapa";
+                btnEdit.onclick = () => editStep(index);
+
+                const btnDelete = document.createElement('button');
+                btnDelete.className = 'icon-btn';
+                btnDelete.innerHTML = '🗑️';
+                btnDelete.title = "Excluir etapa";
+                btnDelete.onclick = () => deleteStep(index);
+
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.className = 'step-checkbox';
-                checkbox.id = `chk-${step.id}`;
+                checkbox.id = `chk-${index}`;
                 checkbox.checked = step.status === 'completed';
-                
-                // Adiciona o evento de clique
                 checkbox.addEventListener('change', (e) => toggleStep(index, e.target.checked));
 
+                actionsDiv.appendChild(btnEdit);
+                actionsDiv.appendChild(btnDelete);
+                actionsDiv.appendChild(checkbox);
+
                 content.appendChild(textDiv);
-                content.appendChild(checkbox); // Adiciona o checkbox à direita
+                content.appendChild(actionsDiv);
 
                 stepDiv.appendChild(marker);
                 stepDiv.appendChild(content);
@@ -320,16 +430,7 @@
             });
         }
 
-        // Reseta tudo para o estado original
-        function resetProgress() {
-            if(confirm("Tem certeza que deseja zerar o progresso?")) {
-                localStorage.removeItem('financiamentoSteps');
-                loadSteps();
-                renderSteps();
-            }
-        }
-
-        // Inicializa a página
+        // Inicialização
         loadSteps();
         updateStepsLogic();
         renderSteps();
