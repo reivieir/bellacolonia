@@ -1,20 +1,22 @@
-// Puxa o cliente do Supabase que foi carregado no HTML
+// Coloque suas chaves aqui novamente
 const supabaseUrl = 'https://jqpdampcglodtmfmeivk.supabase.co'; 
 const supabaseAnonKey = 'sb_publishable_RnX8Pk3gAeJjM7vnnpWaGg_2zM0ZkyM';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+
+// Mudamos o nome da variável para 'supabaseClient' para evitar o conflito!
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 let steps = [];
 
 // Carrega os dados do Supabase
 async function loadSteps() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('status_financiamento')
         .select('*')
         .order('numero_passo', { ascending: true });
 
     if (error) {
         console.error("Erro ao carregar dados:", error);
-        document.getElementById('timeline-container').innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar os dados. Verifique a conexão com o Supabase.</p>';
+        document.getElementById('timeline-container').innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar os dados. Verifique a conexão com o banco.</p>';
         return;
     }
 
@@ -32,7 +34,7 @@ async function toggleStep(index, isChecked) {
     renderSteps();
 
     // Salva no banco
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('status_financiamento')
         .update({ status: novoStatus })
         .eq('id', step.id);
@@ -56,7 +58,7 @@ async function editStep(index) {
     step.descricao = descAtualizada;
     renderSteps();
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('status_financiamento')
         .update({ titulo: tituloAtualizado, descricao: descAtualizada })
         .eq('id', step.id);
@@ -72,7 +74,7 @@ async function deleteStep(index) {
         steps.splice(index, 1);
         renderSteps();
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('status_financiamento')
             .delete()
             .eq('id', step.id);
@@ -103,7 +105,7 @@ async function addNewStep() {
     titleInput.value = '';
     descInput.value = '';
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
         .from('status_financiamento')
         .insert([novoPasso]);
 
