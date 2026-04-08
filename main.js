@@ -1,9 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
-import './style.css';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Puxa o cliente do Supabase que foi carregado no HTML
+const supabaseUrl = 'https://jqpdampcglodtmfmeivk.supabase.co'; 
+const supabaseAnonKey = 'sb_publishable_RnX8Pk3gAeJjM7vnnpWaGg_2zM0ZkyM';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
 let steps = [];
 
@@ -16,6 +14,7 @@ async function loadSteps() {
 
     if (error) {
         console.error("Erro ao carregar dados:", error);
+        document.getElementById('timeline-container').innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar os dados. Verifique a conexão com o Supabase.</p>';
         return;
     }
 
@@ -28,7 +27,7 @@ async function toggleStep(index, isChecked) {
     const step = steps[index];
     const novoStatus = isChecked ? 'completed' : 'pending';
     
-    // Atualiza localmente primeiro para resposta imediata na tela
+    // Atualiza localmente primeiro
     step.status = novoStatus;
     renderSteps();
 
@@ -70,11 +69,9 @@ async function deleteStep(index) {
     const step = steps[index];
     if (confirm(`Tem certeza que deseja excluir a etapa "${step.titulo}"?`)) {
         
-        // Remove da tela
         steps.splice(index, 1);
         renderSteps();
 
-        // Remove do banco usando o UUID
         const { error } = await supabase
             .from('status_financiamento')
             .delete()
@@ -102,22 +99,20 @@ async function addNewStep() {
         status: 'pending'
     };
 
-    // Limpa os inputs
     numInput.value = '';
     titleInput.value = '';
     descInput.value = '';
 
-    const { data, error } = await supabase
+    const { error } = await supabase
         .from('status_financiamento')
-        .insert([novoPasso])
-        .select();
+        .insert([novoPasso]);
 
     if (error) {
         console.error("Erro ao adicionar etapa:", error);
         return;
     }
 
-    // Recarrega para pegar o UUID gerado pelo Supabase e manter a ordem
+    // Recarrega tudo para pegar o ID do banco
     loadSteps();
 }
 
@@ -126,10 +121,14 @@ function renderSteps() {
     const container = document.getElementById('timeline-container');
     container.innerHTML = ''; 
 
+    if (steps.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #64748b;">Nenhuma etapa encontrada. Adicione uma nova etapa abaixo.</p>';
+        return;
+    }
+
     let foundActive = false;
 
     steps.forEach((step, index) => {
-        // Lógica de visualização (calcula quem é o "active" na hora)
         let visualStatus = step.status;
         if (step.status !== 'completed' && !foundActive) {
             visualStatus = 'active';
@@ -196,8 +195,8 @@ function renderSteps() {
     });
 }
 
-// Event Listener para o botão de adicionar
+// Adiciona o evento de clique no botão
 document.getElementById('btn-add-step').addEventListener('click', addNewStep);
 
-// Inicia o carregamento
+// Inicia o carregamento quando a página abre
 loadSteps();
