@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status do Financiamento</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <div class="container">
         <h1>Progresso do Financiamento 🏠</h1>
         
         <div class="timeline" id="timeline-container">
-            <p style="text-align: center; color: #64748b;">Carregando dados do Supabase...</p>
+            <p style="text-align: center; color: #64748b;">Carregando dados do banco...</p>
         </div>
 
         <div class="admin-panel">
@@ -28,6 +30,7 @@
             <p><strong>IQ com a CAIXA:</strong> Para dar entrada no cartório, é aguardar os vendedores receberem a Carta de Quitação (até 30 dias).</p>
         </div>
     </div>
-    <script type="module" src="/main.js"></script>
+    
+    <script src="main.js"></script>
 </body>
 </html>
