@@ -44,7 +44,6 @@
             margin-left: 15px;
         }
 
-        /* Linha vertical da timeline */
         .timeline::before {
             content: '';
             position: absolute;
@@ -62,6 +61,7 @@
             margin-bottom: 20px;
             position: relative;
             z-index: 2;
+            transition: all 0.3s ease;
         }
 
         .step-marker {
@@ -83,11 +83,20 @@
 
         .step-content {
             padding-top: 5px;
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .step-text {
+            padding-right: 15px;
         }
 
         .step-title {
             font-weight: 500;
             font-size: 0.95rem;
+            cursor: pointer;
         }
 
         .step-desc {
@@ -96,7 +105,16 @@
             margin-top: 4px;
         }
 
-        /* Estilos de Status */
+        /* Estilização do Checkbox */
+        .step-checkbox {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--success);
+            margin-top: 2px;
+        }
+
+        /* Status Concluído */
         .step.completed .step-marker {
             background-color: var(--success);
             border-color: var(--success);
@@ -107,6 +125,7 @@
             text-decoration: line-through;
         }
 
+        /* Status Ativo (O próximo passo a ser feito) */
         .step.active .step-marker {
             background-color: var(--primary);
             border-color: var(--primary);
@@ -123,7 +142,6 @@
             background-color: white;
         }
 
-        /* Caixa de Avisos Importantes */
         .alert-box {
             margin-top: 40px;
             padding: 15px;
@@ -142,6 +160,24 @@
         .alert-box p {
             margin: 5px 0;
         }
+        
+        /* Botão para limpar progresso (opcional) */
+        .reset-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 10px;
+            background: none;
+            border: 1px solid #cbd5e1;
+            color: #64748b;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.3s;
+        }
+        .reset-btn:hover {
+            background: #f1f5f9;
+        }
     </style>
 </head>
 <body>
@@ -155,14 +191,15 @@
         <div class="alert-box">
             <h3>⚠️ Observações Importantes</h3>
             <p><strong>IQ com a CAIXA:</strong> Para dar entrada no cartório, é necessário aguardar os vendedores receberem a Carta de Quitação por e-mail (prazo de até 30 dias, média de 2 semanas).</p>
-            <p><strong>Exceções:</strong> Pastas por procuração ou com uso de FGTS possuem fluxos/formulários específicos.</p>
+            <p><strong>Exceções:</strong> Pastas por procuração possuem fluxos/formulários específicos.</p>
         </div>
+
+        <button class="reset-btn" onclick="resetProgress()">Reiniciar Progresso</button>
     </div>
 
     <script>
-        // Array com todos os passos. 
-        // Para atualizar a página, basta mudar o "status" para 'completed', 'active' ou 'pending'.
-        const steps = [
+        // Array original de passos (sem o FGTS)
+        const defaultSteps = [
             { id: "1", title: "Simulação", status: "completed" },
             { id: "2", title: "Aprovação de crédito", status: "completed" },
             { id: "3", title: "Envio de pasta", status: "active", desc: "ESTAMOS NESTA FASE" },
@@ -170,7 +207,6 @@
             { id: "5", title: "Certificação assinatura digital E-notariado", status: "pending" },
             { id: "6", title: "Análise jurídica", status: "pending" },
             { id: "7", title: "Minuta, confirmação de dados e valores", status: "pending" },
-            { id: "8", title: "Saque do FGTS", status: "pending", desc: "Caso aplicável" },
             { id: "9", title: "Emissão do contrato", status: "pending", desc: "Débito da tarifa de vistoria: R$ 1.950,00" },
             { id: "10", title: "Assinatura de contrato", status: "pending", desc: "Digital e/ou física" },
             { id: "11", title: "Emissão e pagamento da guia de ITBI", status: "pending", desc: "Imposto para prefeitura (Emitido após assinatura)" },
@@ -178,42 +214,125 @@
             { id: "20", title: "Pagamento da prenotação do cartório", status: "pending", desc: "Aguardando boleto" },
             { id: "21", title: "Pagamento do registro no Cartório", status: "pending", desc: "Via boleto, em média 15 dias após entrada" },
             { id: "22", title: "Documento: Contrato Registrado", status: "pending" },
-            { id: "23", title: "Pagamento ao vendedor", status: "pending", desc: "Recursos de financiamento + FGTS" }
+            { id: "23", title: "Pagamento ao vendedor", status: "pending", desc: "Recursos de financiamento" }
         ];
 
-        const container = document.getElementById('timeline-container');
+        let steps = [];
 
-        steps.forEach(step => {
-            // Cria os elementos HTML dinamicamente
-            const stepDiv = document.createElement('div');
-            stepDiv.className = `step ${step.status}`;
-
-            const marker = document.createElement('div');
-            marker.className = 'step-marker';
-            // Se estiver completo, mostra um checkmark (✓), senão mostra o número do passo
-            marker.innerHTML = step.status === 'completed' ? '✓' : step.id;
-
-            const content = document.createElement('div');
-            content.className = 'step-content';
-
-            const title = document.createElement('div');
-            title.className = 'step-title';
-            title.innerText = `${step.id}. ${step.title}`;
-
-            content.appendChild(title);
-
-            // Adiciona a descrição se existir
-            if (step.desc) {
-                const desc = document.createElement('div');
-                desc.className = 'step-desc';
-                desc.innerText = step.desc;
-                content.appendChild(desc);
+        // Carrega o progresso salvo no navegador ou usa o original
+        function loadSteps() {
+            const saved = localStorage.getItem('financiamentoSteps');
+            if (saved) {
+                steps = JSON.parse(saved);
+            } else {
+                steps = JSON.parse(JSON.stringify(defaultSteps));
             }
+        }
 
-            stepDiv.appendChild(marker);
-            stepDiv.appendChild(content);
-            container.appendChild(stepDiv);
-        });
+        // Salva o progresso no navegador
+        function saveSteps() {
+            localStorage.setItem('financiamentoSteps', JSON.stringify(steps));
+        }
+
+        // Atualiza a lógica visual dos passos (quem é active, pending ou completed)
+        function updateStepsLogic() {
+            let foundActive = false;
+            
+            for (let i = 0; i < steps.length; i++) {
+                if (steps[i].status === 'completed') {
+                    continue; // Pula os concluídos
+                }
+                
+                // O primeiro que não estiver concluído se torna o "ativo" (destaque)
+                if (!foundActive) {
+                    steps[i].status = 'active';
+                    foundActive = true;
+                } else {
+                    // Os demais ficam como pendentes
+                    steps[i].status = 'pending';
+                }
+            }
+        }
+
+        // Função disparada ao clicar no checkbox
+        function toggleStep(index, isChecked) {
+            if (isChecked) {
+                steps[index].status = 'completed';
+            } else {
+                steps[index].status = 'pending';
+            }
+            
+            updateStepsLogic();
+            saveSteps();
+            renderSteps();
+        }
+
+        // Função para renderizar o HTML na tela
+        function renderSteps() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = ''; // Limpa a tela antes de desenhar
+
+            steps.forEach((step, index) => {
+                const stepDiv = document.createElement('div');
+                stepDiv.className = `step ${step.status}`;
+
+                const marker = document.createElement('div');
+                marker.className = 'step-marker';
+                marker.innerHTML = step.status === 'completed' ? '✓' : step.id;
+
+                const content = document.createElement('div');
+                content.className = 'step-content';
+
+                const textDiv = document.createElement('div');
+                textDiv.className = 'step-text';
+
+                const title = document.createElement('label');
+                title.className = 'step-title';
+                title.innerText = `${step.id}. ${step.title}`;
+                // Linkando o texto ao checkbox
+                title.htmlFor = `chk-${step.id}`; 
+
+                textDiv.appendChild(title);
+
+                if (step.desc) {
+                    const desc = document.createElement('div');
+                    desc.className = 'step-desc';
+                    desc.innerText = step.desc;
+                    textDiv.appendChild(desc);
+                }
+
+                // Criação do Checkbox
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'step-checkbox';
+                checkbox.id = `chk-${step.id}`;
+                checkbox.checked = step.status === 'completed';
+                
+                // Adiciona o evento de clique
+                checkbox.addEventListener('change', (e) => toggleStep(index, e.target.checked));
+
+                content.appendChild(textDiv);
+                content.appendChild(checkbox); // Adiciona o checkbox à direita
+
+                stepDiv.appendChild(marker);
+                stepDiv.appendChild(content);
+                container.appendChild(stepDiv);
+            });
+        }
+
+        // Reseta tudo para o estado original
+        function resetProgress() {
+            if(confirm("Tem certeza que deseja zerar o progresso?")) {
+                localStorage.removeItem('financiamentoSteps');
+                loadSteps();
+                renderSteps();
+            }
+        }
+
+        // Inicializa a página
+        loadSteps();
+        updateStepsLogic();
+        renderSteps();
     </script>
 </body>
 </html>
