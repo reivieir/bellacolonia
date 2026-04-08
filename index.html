@@ -15,7 +15,8 @@
 
         <main>
             <div class="timeline-wave" id="timeline-wave-container">
-                </div>
+                <p style="text-align: center; color: #64748b;">Carregando dados...</p>
+            </div>
 
             <div class="details-grid" id="details-grid-container">
                 </div>
@@ -30,7 +31,14 @@
             <div class="admin-panel">
                 <h3>➕ Adicionar Nova Etapa</h3>
                 <div class="form-group">
-                    <input type="number" id="new-num" class="input-id" placeholder="Nº (Ex: 8)">
+                    <select id="new-stage" class="input-stage">
+                        <option value="start">Iniciação</option>
+                        <option value="planning">Planejamento</option>
+                        <option value="execution">Execução</option>
+                        <option value="monitoring">Monitoramento</option>
+                        <option value="closing">Encerramento</option>
+                    </select>
+
                     <input type="text" id="new-title" class="input-title" placeholder="Nome da etapa">
                 </div>
                 <input type="text" id="new-desc" class="input-desc" placeholder="Descrição ou observação (opcional)">
