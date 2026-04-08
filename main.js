@@ -83,25 +83,26 @@ async function deleteStep(index) {
 }
 
 async function addNewStep() {
-    const numInput = document.getElementById('new-num');
-    const stageInput = document.getElementById('new-stage'); // Pega o valor do seletor
+    const stageInput = document.getElementById('new-stage'); 
     const titleInput = document.getElementById('new-title');
     const descInput = document.getElementById('new-desc');
 
-    if (!numInput.value || !titleInput.value) {
-        alert("Por favor, preencha o Número e o Nome da etapa.");
+    if (!titleInput.value) {
+        alert("Por favor, preencha o Nome da etapa.");
         return;
     }
 
+    // Cria um número interno sequencial só para manter a organização no banco
+    const internalNextNum = steps.length > 0 ? Math.max(...steps.map(s => s.numero_passo)) + 1 : 1;
+
     const novoPasso = {
-        numero_passo: parseInt(numInput.value),
-        estagio: stageInput.value, // Salva o estágio escolhido no banco
+        numero_passo: internalNextNum, 
+        estagio: stageInput.value, 
         titulo: titleInput.value,
         descricao: descInput.value || null,
         status: 'pending'
     };
 
-    numInput.value = '';
     titleInput.value = '';
     descInput.value = '';
 
@@ -111,7 +112,7 @@ async function addNewStep() {
 
     if (error) {
         console.error("Erro ao adicionar etapa:", error);
-        alert("Erro ao adicionar etapa. Você rodou o código SQL no Supabase?");
+        alert("Erro ao adicionar etapa. Verifique a conexão.");
         return;
     }
 
@@ -128,22 +129,30 @@ function renderSteps() {
     let firstPendingStep = null;
     let foundFirstPending = false;
 
+    // 1. Agrupa as etapas nos seus blocos corretos
     steps.forEach((step, index) => {
         step.originalIndex = index; 
-        
-        // Agora lê o estágio direto do banco de dados (com 'start' como fallback)
         const stageId = step.estagio || 'start'; 
         if (stepsByStage[stageId]) {
             stepsByStage[stageId].push(step);
         }
-
-        if (step.status !== 'completed' && !foundFirstPending) {
-            firstPendingStep = step;
-            foundFirstPending = true;
-        }
     });
 
-    // Renderiza Linha do Tempo
+    // 2. NOVO: Calcula a numeração que vai aparecer na tela em tempo real
+    let visualCounter = 1;
+    mainStages.forEach(stage => {
+        stepsByStage[stage.id].forEach(step => {
+            step.visualNumber = visualCounter++; // Define números sequenciais de 1 a N
+            
+            // Aproveita o loop para identificar a etapa atual pendente
+            if (step.status !== 'completed' && !foundFirstPending) {
+                firstPendingStep = step;
+                foundFirstPending = true;
+            }
+        });
+    });
+
+    // 3. Renderiza Linha do Tempo
     mainStages.forEach(stage => {
         let stageStatus = 'pending';
         const stepsInThisStage = stepsByStage[stage.id];
@@ -175,7 +184,7 @@ function renderSteps() {
         waveContainer.appendChild(stageDiv);
     });
 
-    // Renderiza Grade de Detalhes
+    // 4. Renderiza Grade de Detalhes
     mainStages.forEach(stage => {
         const columnDiv = document.createElement('div');
         columnDiv.className = `details-column ${stage.id}`;
@@ -197,7 +206,8 @@ function renderSteps() {
 
             const title = document.createElement('label');
             title.className = 'step-item-title';
-            title.innerText = `${step.numero_passo}. ${step.titulo}`;
+            // Agora usa o visualNumber (calculado automaticamente)
+            title.innerText = `${step.visualNumber}. ${step.titulo}`; 
             title.htmlFor = `chk-${step.id}`; 
             textBlock.appendChild(title);
 
