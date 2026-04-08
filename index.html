@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status do Financiamento</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --pending: #d1d5db;
+            --bg: #f8fafc;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            max-width: 600px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--primary);
+        }
+
+        .timeline {
+            position: relative;
+            margin-left: 15px;
+        }
+
+        /* Linha vertical da timeline */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 14px;
+            width: 2px;
+            background: var(--pending);
+            z-index: 1;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .step-marker {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid var(--pending);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: #64748b;
+            margin-right: 15px;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        .step-content {
+            padding-top: 5px;
+        }
+
+        .step-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .step-desc {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        /* Estilos de Status */
+        .step.completed .step-marker {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        .step.completed .step-title {
+            color: #64748b;
+            text-decoration: line-through;
+        }
+
+        .step.active .step-marker {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+        .step.active .step-title {
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .step.pending .step-marker {
+            background-color: white;
+        }
+
+        /* Caixa de Avisos Importantes */
+        .alert-box {
+            margin-top: 40px;
+            padding: 15px;
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #92400e;
+        }
+
+        .alert-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+        }
+        
+        .alert-box p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Progresso do Financiamento 🏠</h1>
+        
+        <div class="timeline" id="timeline-container">
+            </div>
+
+        <div class="alert-box">
+            <h3>⚠️ Observações Importantes</h3>
+            <p><strong>IQ com a CAIXA:</strong> Para dar entrada no cartório, é necessário aguardar os vendedores receberem a Carta de Quitação por e-mail (prazo de até 30 dias, média de 2 semanas).</p>
+            <p><strong>Exceções:</strong> Pastas por procuração ou com uso de FGTS possuem fluxos/formulários específicos.</p>
+        </div>
+    </div>
+
+    <script>
+        // Array com todos os passos. 
+        // Para atualizar a página, basta mudar o "status" para 'completed', 'active' ou 'pending'.
+        const steps = [
+            { id: "1", title: "Simulação", status: "completed" },
+            { id: "2", title: "Aprovação de crédito", status: "completed" },
+            { id: "3", title: "Envio de pasta", status: "active", desc: "ESTAMOS NESTA FASE" },
+            { id: "4", title: "Vistoria do imóvel", status: "pending" },
+            { id: "5", title: "Certificação assinatura digital E-notariado", status: "pending" },
+            { id: "6", title: "Análise jurídica", status: "pending" },
+            { id: "7", title: "Minuta, confirmação de dados e valores", status: "pending" },
+            { id: "8", title: "Saque do FGTS", status: "pending", desc: "Caso aplicável" },
+            { id: "9", title: "Emissão do contrato", status: "pending", desc: "Débito da tarifa de vistoria: R$ 1.950,00" },
+            { id: "10", title: "Assinatura de contrato", status: "pending", desc: "Digital e/ou física" },
+            { id: "11", title: "Emissão e pagamento da guia de ITBI", status: "pending", desc: "Imposto para prefeitura (Emitido após assinatura)" },
+            { id: "19", title: "Ingresso no cartório", status: "pending", desc: "Via RI DIGITAL (Itaú)" },
+            { id: "20", title: "Pagamento da prenotação do cartório", status: "pending", desc: "Aguardando boleto" },
+            { id: "21", title: "Pagamento do registro no Cartório", status: "pending", desc: "Via boleto, em média 15 dias após entrada" },
+            { id: "22", title: "Documento: Contrato Registrado", status: "pending" },
+            { id: "23", title: "Pagamento ao vendedor", status: "pending", desc: "Recursos de financiamento + FGTS" }
+        ];
+
+        const container = document.getElementById('timeline-container');
+
+        steps.forEach(step => {
+            // Cria os elementos HTML dinamicamente
+            const stepDiv = document.createElement('div');
+            stepDiv.className = `step ${step.status}`;
+
+            const marker = document.createElement('div');
+            marker.className = 'step-marker';
+            // Se estiver completo, mostra um checkmark (✓), senão mostra o número do passo
+            marker.innerHTML = step.status === 'completed' ? '✓' : step.id;
+
+            const content = document.createElement('div');
+            content.className = 'step-content';
+
+            const title = document.createElement('div');
+            title.className = 'step-title';
+            title.innerText = `${step.id}. ${step.title}`;
+
+            content.appendChild(title);
+
+            // Adiciona a descrição se existir
+            if (step.desc) {
+                const desc = document.createElement('div');
+                desc.className = 'step-desc';
+                desc.innerText = step.desc;
+                content.appendChild(desc);
+            }
+
+            stepDiv.appendChild(marker);
+            stepDiv.appendChild(content);
+            container.appendChild(stepDiv);
+        });
+    </script>
+</body>
+</html>
