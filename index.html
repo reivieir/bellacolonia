@@ -3,29 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Status do Financiamento</title>
+    <title>Progresso do Financiamento Profissional</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Progresso do Financiamento 🏠</h1>
-        
-        <div class="timeline" id="timeline-container">
-            <p style="text-align: center; color: #64748b;">Carregando dados do banco...</p>
-        </div>
+    <div class="main-wrapper">
+        <header>
+            <h1>Progresso do Financiamento 🏠</h1>
+        </header>
 
-        <div class="admin-panel">
-            <h3>➕ Adicionar Nova Etapa</h3>
-            <div class="form-group">
-                <input type="number" id="new-num" class="input-id" placeholder="Nº (Ex: 8)">
-                <input type="text" id="new-title" class="input-title" placeholder="Nome da etapa">
+        <main>
+            <div class="timeline-wave" id="timeline-wave-container">
+                </div>
+
+            <div class="details-grid" id="details-grid-container">
+                </div>
+        </main>
+
+        <footer>
+            <div class="alert-box">
+                <h3>⚠️ Observações Importantes</h3>
+                <p><strong>IQ com a CAIXA:</strong> Para dar entrada no cartório, é aguardar os vendedores receberem a Carta de Quitação (até 30 dias).</p>
             </div>
-            <input type="text" id="new-desc" class="input-desc" placeholder="Descrição ou observação (opcional)">
-            <button id="btn-add-step" class="btn-add">Adicionar</button>
-        </div>
 
-        
+            <div class="admin-panel">
+                <h3>➕ Adicionar Nova Etapa</h3>
+                <div class="form-group">
+                    <input type="number" id="new-num" class="input-id" placeholder="Nº (Ex: 8)">
+                    <input type="text" id="new-title" class="input-title" placeholder="Nome da etapa">
+                </div>
+                <input type="text" id="new-desc" class="input-desc" placeholder="Descrição ou observação (opcional)">
+                <button id="btn-add-step" class="btn-add">Adicionar</button>
+            </div>
+        </footer>
     </div>
     
     <script src="main.js"></script>
